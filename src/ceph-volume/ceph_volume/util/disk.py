@@ -361,6 +361,17 @@ def is_partition(dev):
         return True
     return False
 
+
+def is_lv_device(dev):
+    """
+    Boolean to determine if a given device is a logical volume
+    """
+    if not os.path.exists(dev):
+        return False
+    TYPE = lsblk(dev).get('TYPE')
+    return TYPE == 'lvm'
+
+
 def is_block_device(dev):
     """
     Boolean to determine if a given device is a block device

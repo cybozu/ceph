@@ -143,6 +143,8 @@ class Prepare(object):
         :param argument: The command-line value that will need to be split to
                          retrieve the actual lv
         """
+        if disk.is_lv_device(argument):
+            return api.get_lv_from_path(argument)
         try:
             vg_name, lv_name = argument.split('/')
         except (ValueError, AttributeError):

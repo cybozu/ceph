@@ -1248,6 +1248,22 @@ def get_lv_from_argument(argument):
     return get_lv(lv_name=lv_name, vg_name=vg_name)
 
 
+def get_lv_from_path(filepath):
+    """
+    Return a lv pointed by ``filepath`` whether the path is in the form of
+    `/dev/vg/lv` or not.
+    """
+    stdout, stderr, returncode = process.call(
+        ['dmsetup', 'info', '-c', '-o', 'name', '--noheadings', filepath]
+    )
+    if returncode != 0:
+        raise RuntimeError('Failed to call "dmsetup info %s"' % filepath)
+    if len(stdout) != 1:
+        raise RuntimeError('"dmsetup info %s" returned %d results' % (filepath, len(stdout)))
+    splitname = dmsetup_splitname(stdout[0].strip())
+    return get_lv(lv_name=splitname.get('LV_NAME'), vg_name=splitname.get('VG_NAME'))
+
+
 def create_lvs(volume_group, parts=None, size=None, name_prefix='ceph-lv'):
     """
     Create multiple Logical Volumes from a Volume Group by calculating the
