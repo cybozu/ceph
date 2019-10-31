@@ -290,6 +290,7 @@ class Batch(object):
     def _get_strategy(self):
         strategy = get_strategy(self.args, self.args.devices)
         unused_devices, self.filtered_devices = filter_devices(self.args)
+        unused_devices = _to_mapper_devs(unused_devices)
         if not unused_devices and not self.args.format == 'json':
             # report nothing changed
             mlogger.info("All devices are already used by ceph. No OSDs will be created.")
@@ -301,6 +302,14 @@ class Batch(object):
                 raise SystemExit(1)
 
         self.strategy = strategy.with_auto_devices(self.args, unused_devices)
+
+    def _to_mapper_devs(unused_devices):
+        updated = []
+        mapper_devs = disk.get_mapper_devs('/dev/mapper')
+        for dev in unused_devices:
+            updated.append(mapper_devs.get(dev) or dev)
+
+        updated
 
     @decorators.needs_root
     def main(self):
