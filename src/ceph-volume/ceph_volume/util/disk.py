@@ -362,6 +362,31 @@ def is_partition(dev):
     return False
 
 
+def is_lv_device(dev):
+    """
+    Boolean to determine if a given device is a logical volume
+    """
+    if not os.path.exists(dev):
+        return False
+    TYPE = lsblk(dev).get('TYPE')
+    return TYPE == 'lvm'
+
+
+def is_block_device(dev):
+    """
+    Boolean to determine if a given device is a block device
+    """
+    if not os.path.exists(dev):
+        return False
+    # use lsblk first, fall back to using stat
+    TYPE = lsblk(dev).get('TYPE')
+    if TYPE:
+        return True
+
+    # fallback to stat
+    return _stat_is_device(os.lstat(dev).st_mode)
+
+
 def _map_dev_paths(_path, include_abspath=False, include_realpath=False):
     """
     Go through all the items in ``_path`` and map them to their absolute path::
