@@ -50,6 +50,7 @@ int RGWSI_MetaBackend_OTP::get_entry(RGWSI_MetaBackend::Context *_ctx,
 
   int r = cls_svc->mfa.list_mfa(key, params.pdevices, objv_tracker, params.pmtime, y);
   if (r < 0) {
+    cerr << "RGWSI_MetaBackend_OTP::get_entry result=" << r << std::endl;
     return r;
   }
 

@@ -2214,6 +2214,7 @@ public:
     return dbiter->status().ok() ? 0 : -1;
   }
   bool valid() override {
+    cerr << "rocksdb status(CFIteratorImpl) = " << dbiter->status().ToString() << std::endl;
     return dbiter->Valid();
   }
   string key() override {
@@ -2868,6 +2869,7 @@ public:
     return 0;
   }
   bool valid() override {
+    cerr << "rocksdb status(ShardMergeIteratorImpl) = " << iters[0]->status().ToString() << std::endl;
     return iters[0]->Valid();
   }
   string key() override {

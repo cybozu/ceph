@@ -504,8 +504,12 @@ int rgw_remove_bucket_bypass_gc(rgw::sal::RGWRadosStore *store, rgw_bucket& buck
 
 static void set_err_msg(std::string *sink, std::string msg)
 {
-  if (sink && !msg.empty())
+  if (msg.empty())
+    return;
+  if (sink)
     *sink = msg;
+  else
+    cerr << msg << std::endl;
 }
 
 int RGWBucket::init(rgw::sal::RGWRadosStore *storage, RGWBucketAdminOpState& op_state,
@@ -857,8 +861,7 @@ int RGWBucket::check_bad_index_multipart(RGWBucketAdminOpState& op_state,
     int r = list_op.list_objects(listing_max_entries, &result,
 				 &common_prefixes, &is_truncated, null_yield);
     if (r < 0) {
-      set_err_msg(err_msg, "failed to list objects in bucket=" + bucket.name +
-              " err=" +  cpp_strerror(-r));
+      cerr << "failed to list objects in bucket=" << bucket.name << " err=" << cpp_strerror(-r) << std::endl;
 
       return r;
     }
@@ -897,14 +900,16 @@ int RGWBucket::check_bad_index_multipart(RGWBucketAdminOpState& op_state,
 
     if (meta_objs.find(name) == meta_objs.end()) {
       objs_to_unlink.push_back(aiter->first);
+      rgw_obj log_obj(bucket, aiter->first);
+      cerr << "[bucket=" << bucket.name << "] objs_to_unlink.push_back(" << log_obj.get_oid() << ")" << std::endl;
     }
 
     if (objs_to_unlink.size() > listing_max_entries) {
       if (fix_index) {
+        cerr << "start(p1) remove_objs_from_index()" << std::endl;
 	int r = store->getRados()->remove_objs_from_index(bucket_info, objs_to_unlink);
 	if (r < 0) {
-	  set_err_msg(err_msg, "ERROR: remove_obj_from_index() returned error: " +
-		      cpp_strerror(-r));
+	  cerr << "ERROR: remove_obj_from_index() returned error: " << cpp_strerror(-r) << std::endl;
 	  return r;
 	}
       }
@@ -916,10 +921,10 @@ int RGWBucket::check_bad_index_multipart(RGWBucketAdminOpState& op_state,
   }
 
   if (fix_index) {
+    cerr << "start(p2) remove_objs_from_index()" << std::endl;
     int r = store->getRados()->remove_objs_from_index(bucket_info, objs_to_unlink);
     if (r < 0) {
-      set_err_msg(err_msg, "ERROR: remove_obj_from_index() returned error: " +
-              cpp_strerror(-r));
+      cerr << "ERROR: remove_obj_from_index() returned error: " << cpp_strerror(-r) << std::endl;
 
       return r;
     }
@@ -997,16 +1002,18 @@ int RGWBucket::check_index(RGWBucketAdminOpState& op_state,
 {
   bool fix_index = op_state.will_fix_index();
 
+  cerr << "start bucket_check_index()" << std::endl;
   int r = store->getRados()->bucket_check_index(bucket_info, &existing_stats, &calculated_stats);
   if (r < 0) {
-    set_err_msg(err_msg, "failed to check index error=" + cpp_strerror(-r));
+    cerr << "failed to check index error=" << cpp_strerror(-r) << std::endl;
     return r;
   }
 
   if (fix_index) {
+    cerr << "start bucket_rebuild_index()" << std::endl;
     r = store->getRados()->bucket_rebuild_index(bucket_info);
     if (r < 0) {
-      set_err_msg(err_msg, "failed to rebuild index err=" + cpp_strerror(-r));
+      cerr << "failed to rebuild index err=" << cpp_strerror(-r) << std::endl;
       return r;
     }
   }
@@ -2793,6 +2800,7 @@ int RGWBucketCtl::read_bucket_info(const rgw_bucket& bucket,
                                                     .set_bectx_params(params.bectx_params)
                                                     .set_objv_tracker(ep_objv_tracker));
     if (r < 0) {
+      cerr << "read_bucket_info: p1" << std::endl;
       return r;
     }
 
@@ -2800,7 +2808,7 @@ int RGWBucketCtl::read_bucket_info(const rgw_bucket& bucket,
   }
 
   int ret = bmi_handler->call(params.bectx_params, [&](RGWSI_Bucket_BI_Ctx& ctx) {
-    return svc.bucket->read_bucket_instance_info(ctx,
+    int result = svc.bucket->read_bucket_instance_info(ctx,
                                                  RGWSI_Bucket::get_bi_meta_key(*b),
                                                  info,
                                                  params.mtime,
@@ -2808,9 +2816,12 @@ int RGWBucketCtl::read_bucket_info(const rgw_bucket& bucket,
 						 y,
                                                  params.cache_info,
                                                  params.refresh_version);
+    cerr << "read_bucket_info: p2(" << result << ")" << std::endl;
+    return result;
   });
 
   if (ret < 0) {
+    cerr << "read_bucket_info: p3" << std::endl;
     return ret;
   }
 

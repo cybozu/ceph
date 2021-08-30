@@ -149,11 +149,13 @@ int RGWSI_MetaBackend_SObj::get_entry(RGWSI_MetaBackend::Context *_ctx,
   string oid;
   ctx->module->get_pool_and_oid(key, &pool, &oid);
 
-  return rgw_get_system_obj(*ctx->obj_ctx, pool, oid, *params.pbl,
+  int result = rgw_get_system_obj(*ctx->obj_ctx, pool, oid, *params.pbl,
                             objv_tracker, params.pmtime,
                             y,
                             params.pattrs, params.cache_info,
                             params.refresh_version);
+  cerr << "RGWSI_MetaBackend_SObj::get_entry result=" << result << std::endl;
+  return result;
 }
 
 int RGWSI_MetaBackend_SObj::put_entry(RGWSI_MetaBackend::Context *_ctx,

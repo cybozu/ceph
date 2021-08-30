@@ -285,9 +285,14 @@ private:
       return generic_iter->lower_bound(prefix, to);
     }
     bool valid() override {
-      if (!generic_iter->valid())
-	return false;
-      return generic_iter->raw_key_is_prefixed(prefix);
+      if (!generic_iter->valid()) {
+        cerr << "generic_iter->valid() is false" << std::endl;
+	      return false;
+      }
+      cerr << "generic_iter->valid() is true" << std::endl;
+      bool ret = generic_iter->raw_key_is_prefixed(prefix);
+      cerr << "generic_iter->raw_key_is_prefixed() = " << ret << std::endl;
+      return ret;
     }
     int next() override {
       return generic_iter->next();
