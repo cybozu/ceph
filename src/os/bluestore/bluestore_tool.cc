@@ -434,6 +434,8 @@ int main(int argc, char **argv)
   }
   args.push_back("--no-log-to-stderr");
   args.push_back("--err-to-stderr");
+  args.push_back("--bluefs-buffered-io");
+  args.push_back("false");
 
   for (auto& i : ceph_option_strings) {
     args.push_back(i.c_str());
