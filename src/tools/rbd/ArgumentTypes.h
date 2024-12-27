@@ -55,6 +55,9 @@ static const std::string DEST_SNAPSHOT_NAME("dest-snap");
 static const std::string PATH("path");
 static const std::string FROM_SNAPSHOT_NAME("from-snap");
 static const std::string WHOLE_OBJECT("whole-object");
+static const std::string READ_OFFSET("read-offset");
+static const std::string READ_LENGTH("read-length");
+static const std::string MID_SNAP_PREFIX("mid-snap-prefix");
 
 // encryption arguments
 static const std::string ENCRYPTION_FORMAT("encryption-format");
