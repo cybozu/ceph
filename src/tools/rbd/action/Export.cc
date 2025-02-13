@@ -295,8 +295,7 @@ int get_snapshot_name_for_offset_length(librbd::Image& image,
   if (r < 0)
     return r;
   
-  // ⚠️ should be test when offset == info.size
-  if (*offset > info.size) {
+  if (*offset >= info.size) {
     std::cerr << "rbd: offset " << *offset << " exceeds image size "
               << info.size << std::endl;
     return -EINVAL;
