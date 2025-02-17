@@ -363,6 +363,11 @@ int execute_diff(const po::variables_map &vm,
   std::string mid_snap_prefix("mid-snap");
   if (vm.count(at::MID_SNAP_PREFIX)) {
     mid_snap_prefix = vm[at::MID_SNAP_PREFIX].as<std::string>();
+    r = utils::validate_snapshot_name(at::ARGUMENT_MODIFIER_SOURCE, mid_snap_prefix,
+                                      utils::SNAPSHOT_PRESENCE_PERMITTED, utils::SPEC_VALIDATION_SNAP);
+    if (r < 0) {
+      return r;
+    }
   }
 
   librados::Rados rados;
