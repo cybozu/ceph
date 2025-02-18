@@ -275,8 +275,8 @@ void get_arguments_diff(po::options_description *positional,
     (at::FROM_SNAPSHOT_NAME.c_str(), po::value<std::string>(),
      "snapshot starting point")
     (at::WHOLE_OBJECT.c_str(), po::bool_switch(), "compare whole object")
-    (at::READ_OFFSET.c_str(), po::value<uint64_t>(), "offset in bytes")
-    (at::READ_LENGTH.c_str(), po::value<uint64_t>(), "length in bytes")
+    (at::READ_OFFSET.c_str(), po::value<int64_t>(), "offset in bytes")
+    (at::READ_LENGTH.c_str(), po::value<int64_t>(), "length in bytes")
     (at::MID_SNAP_PREFIX.c_str(), po::value<std::string>(),
      "the prefix of snapshot name in output diff when specifying offset and length");
   at::add_no_progress_option(options);
@@ -352,12 +352,26 @@ int execute_diff(const po::variables_map &vm,
 
   uint64_t offset = 0;
   if (vm.count(at::READ_OFFSET)) {
-    offset = vm[at::READ_OFFSET].as<uint64_t>();
+    // When passing a negative value as an argument for uint64_t typed arg using boost::program_options,
+    // it is casted without causing an error, so check logic was necessary.
+    int64_t s_offset = vm[at::READ_OFFSET].as<int64_t>();
+    if (s_offset < 0) {
+      std::cerr << "rbd: offset must be greater than or equal to 0" << std::endl;
+      return -EINVAL;
+    }
+    offset = static_cast<uint64_t>(s_offset);
   }
 
   uint64_t length = 0;
   if (vm.count(at::READ_LENGTH)) {
-    length = vm[at::READ_LENGTH].as<uint64_t>();
+    // When passing a negative value as an argument for uint64_t typed arg using boost::program_options,
+    // it is casted without causing an error, so check logic was necessary.
+    int64_t s_length = vm[at::READ_LENGTH].as<int64_t>();
+    if (s_length < 0) {
+      std::cerr << "rbd: length must be greater than or equal to 0" << std::endl;
+      return -EINVAL;
+    }
+    length = static_cast<uint64_t>(s_length);
   }
 
   std::string mid_snap_prefix("mid-snap");
